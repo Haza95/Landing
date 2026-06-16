@@ -17,9 +17,7 @@ background:#f5f5f5;
 text-align:center;
 }
 
-h1{
-color:#003366;
-}
+h1{color:#003366;}
 
 input{
 padding:12px;
@@ -39,9 +37,7 @@ cursor:pointer;
 margin:5px;
 }
 
-button:hover{
-opacity:.9;
-}
+button:hover{opacity:.9;}
 
 #reader{
 max-width:350px;
@@ -67,7 +63,7 @@ margin-right:auto;
 
 <h1>Consulta de Activos UNIFIN</h1>
 
-<input id="codigo" placeholder="Ejemplo 33436" autocomplete="off">
+<input id="codigo" placeholder="Escanea o escribe QR" autocomplete="off">
 
 <br><br>
 
@@ -79,23 +75,23 @@ margin-right:auto;
 
 <script>
 
-// 🔴 TU API DE APPS SCRIPT (NO LA CAMBIES AQUÍ)
+// 🔴 TU API DE APPS SCRIPT (NO CAMBIAR SOLO URL)
 const API_URL =
-"https://script.google.com/macros/s/AKfycbzJXF8A883RLVvBPnyeEBfk4bM8eHkU_PBpA_oDjL3h5J6tfUSBX2YcIOa2w40BR2Sk/exec";
+"https://script.google.com/macros/s/AKfycbw_EoyY6DKZgro6E9yp-9QF8L9RhwcY8zz4EGsaTLWFDp4WlUUHO5vbFbkoTokMkkYF/exec";
 
-let canScan = true;
+let allowScan = true;
 
 async function consultar(){
 
 const id = document.getElementById("codigo").value.trim();
 
 if(!id){
-alert("Capture un código");
+alert("Capture o escanee un QR");
 return;
 }
 
 document.getElementById("resultado").innerHTML =
-"<div class='card'>Consultando información...</div>";
+"<div class='card'>Consultando...</div>";
 
 try{
 
@@ -107,7 +103,7 @@ if(!data.encontrado){
 document.getElementById("resultado").innerHTML =
 `<div class="card">
 <h2>No encontrado</h2>
-<p><b>Código:</b> ${id}</p>
+<p><b>QR:</b> ${id}</p>
 </div>`;
 
 return;
@@ -140,16 +136,16 @@ document.getElementById("resultado").innerHTML =
 // 📷 QR SCANNER
 function onScanSuccess(decodedText){
 
-if(!canScan) return;
+if(!allowScan) return;
 
-canScan = false;
+allowScan = false;
 
 document.getElementById("codigo").value =
 decodedText.trim();
 
 consultar();
 
-setTimeout(()=>canScan=true, 2000);
+setTimeout(()=>allowScan=true, 2000);
 
 }
 
