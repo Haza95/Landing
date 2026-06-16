@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-
 <html lang="es">
+
 <head>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Consulta de Activos</title>
+<title>Consulta de Activos UNIFIN</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
@@ -41,6 +41,10 @@ cursor:pointer;
 margin:5px;
 }
 
+button:hover{
+opacity:.9;
+}
+
 #reader{
 max-width:350px;
 margin:20px auto;
@@ -58,22 +62,38 @@ margin-left:auto;
 margin-right:auto;
 }
 
+.ok{
+color:green;
+font-weight:bold;
+}
+
+.error{
+color:red;
+font-weight:bold;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<h1>Consulta de Activos</h1>
+<h1>Consulta de Activos UNIFIN</h1>
 
 <input
 id="codigo"
-placeholder="Ejemplo ACT001"
-
+placeholder="Ejemplo 33434"
+autocomplete="off"
 >
+
+<br><br>
 
 <button onclick="consultar()">
 Buscar
+</button>
+
+<button onclick="location.reload()">
+Reiniciar
 </button>
 
 <div id="reader"></div>
@@ -82,37 +102,54 @@ Buscar
 
 <script>
 
-function consultar(){
+const API_URL =
+"https://script.google.com/macros/s/AKfycbx3MdiBFMN0TV1Nu7a5gjgU_s2FE5eqUBUjfwPFA2EEPEVbvskP7CwrBAIJ6f2URch6/exec";
+
+async function consultar(){
 
 const id =
-document.getElementById("codigo")
+document
+.getElementById("codigo")
 .value
 .trim();
 
 if(id===""){
+
 alert("Capture un código");
+
 return;
+
 }
 
-document.getElementById("resultado").innerHTML =
-"<div class='card'>Consultando...</div>";
+document
+.getElementById("resultado")
+.innerHTML =
+"<div class='card'>Consultando información...</div>";
 
-fetch(
-"https://script.google.com/macros/s/AKfycbx3MdiBFMN0TV1Nu7a5gjgU_s2FE5eqUBUjfwPFA2EEPEVbvskP7CwrBAIJ6f2URch6/exec?id=" +
+try{
+
+const response =
+await fetch(
+API_URL +
+"?id=" +
 encodeURIComponent(id)
-)
+);
 
-.then(r => r.json())
-
-.then(data => {
+const data =
+await response.json();
 
 if(!data.encontrado){
 
-document.getElementById("resultado").innerHTML =
+document
+.getElementById("resultado")
+.innerHTML =
 `
 <div class="card">
+
 <h2>No encontrado</h2>
+
 <p><b>Código:</b> ${id}</p>
+
 </div>
 `;
 
@@ -120,7 +157,9 @@ return;
 
 }
 
-document.getElementById("resultado").innerHTML =
+document
+.getElementById("resultado")
+.innerHTML =
 `
 <div class="card">
 
@@ -141,25 +180,32 @@ Escanear otro
 </div>
 `;
 
-})
+}catch(error){
 
-.catch(error => {
-
-document.getElementById("resultado").innerHTML =
+document
+.getElementById("resultado")
+.innerHTML =
 `
 <div class="card">
-<h2>Error</h2>
+
+<h2>Error de conexión</h2>
+
 <p>${error}</p>
+
 </div>
 `;
 
-});
+console.error(error);
+
+}
 
 }
 
 function onScanSuccess(decodedText){
 
-document.getElementById("codigo").value =
+document
+.getElementById("codigo")
+.value =
 decodedText.trim();
 
 consultar();
@@ -171,13 +217,33 @@ new Html5QrcodeScanner(
 "reader",
 {
 fps:10,
-qrbox:250
-}
+qrbox:250,
+rememberLastUsedCamera:true
+},
+false
 );
 
-scanner.render(onScanSuccess);
+scanner.render(
+onScanSuccess
+);
+
+document
+.getElementById("codigo")
+.addEventListener(
+"keypress",
+function(e){
+
+if(e.key==="Enter"){
+
+consultar();
+
+}
+
+}
+);
 
 </script>
 
 </body>
+
 </html>
