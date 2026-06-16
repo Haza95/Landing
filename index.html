@@ -2,7 +2,6 @@
 <html lang="es">
 
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -11,7 +10,6 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-
 body{
 font-family:Arial,sans-serif;
 padding:20px;
@@ -61,17 +59,6 @@ max-width:500px;
 margin-left:auto;
 margin-right:auto;
 }
-
-.ok{
-color:green;
-font-weight:bold;
-}
-
-.error{
-color:red;
-font-weight:bold;
-}
-
 </style>
 
 </head>
@@ -80,170 +67,121 @@ font-weight:bold;
 
 <h1>Consulta de Activos UNIFIN</h1>
 
-<input
-id="codigo"
-placeholder="Ejemplo 33435"
-autocomplete="off"
->
+<input id="codigo" placeholder="Ejemplo 33436" autocomplete="off">
 
 <br><br>
 
-<button onclick="consultar()">
-Buscar
-</button>
-
-<button onclick="location.reload()">
-Reiniciar
-</button>
+<button onclick="consultar()">Buscar</button>
+<button onclick="location.reload()">Reiniciar</button>
 
 <div id="reader"></div>
-
 <div id="resultado"></div>
 
 <script>
 
+// 🔴 TU API DE APPS SCRIPT (NO LA CAMBIES AQUÍ)
 const API_URL =
-"https://script.google.com/macros/s/AKfycbx3MdiBFMN0TV1Nu7a5gjgU_s2FE5eqUBUjfwPFA2EEPEVbvskP7CwrBAIJ6f2URch6/exec";
+"https://script.google.com/macros/s/AKfycbzJXF8A883RLVvBPnyeEBfk4bM8eHkU_PBpA_oDjL3h5J6tfUSBX2YcIOa2w40BR2Sk/exec";
+
+let canScan = true;
 
 async function consultar(){
 
-const id =
-document
-.getElementById("codigo")
-.value
-.trim();
+const id = document.getElementById("codigo").value.trim();
 
-if(id===""){
-
+if(!id){
 alert("Capture un código");
-
 return;
-
 }
 
-document
-.getElementById("resultado")
-.innerHTML =
+document.getElementById("resultado").innerHTML =
 "<div class='card'>Consultando información...</div>";
 
 try{
 
-const response =
-await fetch(
-API_URL +
-"?id=" +
-encodeURIComponent(id)
-);
-
-const data =
-await response.json();
+const res = await fetch(`${API_URL}?id=${encodeURIComponent(id)}`);
+const data = await res.json();
 
 if(!data.encontrado){
 
-document
-.getElementById("resultado")
-.innerHTML =
-`
-<div class="card">
-
+document.getElementById("resultado").innerHTML =
+`<div class="card">
 <h2>No encontrado</h2>
-
 <p><b>Código:</b> ${id}</p>
-
-</div>
-`;
+</div>`;
 
 return;
-
 }
 
-document
-.getElementById("resultado")
-.innerHTML =
-`
-<div class="card">
+document.getElementById("resultado").innerHTML =
+`<div class="card">
 
 <h2>${data.activo}</h2>
 
 <p><b>ID:</b> ${data.id}</p>
-
 <p><b>Cliente:</b> ${data.cliente}</p>
-
 <p><b>Contrato:</b> ${data.contrato}</p>
-
 <p><b>Estatus:</b> ${data.estatus}</p>
 
-<button onclick="location.reload()">
-Escanear otro
-</button>
+</div>`;
 
-</div>
-`;
+}catch(err){
 
-}catch(error){
-
-document
-.getElementById("resultado")
-.innerHTML =
-`
-<div class="card">
-
+document.getElementById("resultado").innerHTML =
+`<div class="card">
 <h2>Error de conexión</h2>
-
-<p>${error}</p>
-
-</div>
-`;
-
-console.error(error);
+<p>${err.message}</p>
+</div>`;
 
 }
 
 }
 
+// 📷 QR SCANNER
 function onScanSuccess(decodedText){
 
-document
-.getElementById("codigo")
-.value =
+if(!canScan) return;
+
+canScan = false;
+
+document.getElementById("codigo").value =
 decodedText.trim();
 
 consultar();
 
+setTimeout(()=>canScan=true, 2000);
+
 }
 
-const scanner =
-new Html5QrcodeScanner(
-"reader",
+const scanner = new Html5Qrcode("reader");
+
+Html5Qrcode.getCameras().then(cameras => {
+
+if(cameras && cameras.length){
+
+scanner.start(
+cameras[0].id,
 {
 fps:10,
-qrbox:250,
-rememberLastUsedCamera:true
+qrbox:250
 },
-false
-);
-
-scanner.render(
 onScanSuccess
 );
 
-document
-.getElementById("codigo")
-.addEventListener(
-"keypress",
-function(e){
+}
 
+}).catch(err=>{
+console.log("Camera error:", err);
+});
+
+document.getElementById("codigo")
+.addEventListener("keypress", function(e){
 if(e.key==="Enter"){
-
 consultar();
-
 }
-
-}
-);
+});
 
 </script>
 
 </body>
-
 </html>
