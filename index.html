@@ -1,62 +1,59 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
 
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Consulta de Activos UNIFIN</title>
+<title>Consulta QR UNIFIN</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 
 body{
-font-family:Arial,sans-serif;
+font-family:Arial;
 background:#f5f5f5;
 padding:20px;
-text-align:center;
 }
 
-.logo{
-max-width:250px;
-margin-bottom:20px;
-}
-
-h1{
-color:#14214a;
-}
-
-button{
-background:#003366;
-color:white;
-border:none;
-padding:12px 20px;
-border-radius:5px;
-cursor:pointer;
-margin:5px;
-}
-
-input{
-padding:12px;
-width:250px;
-border:1px solid #ccc;
-border-radius:5px;
-}
-
-#reader{
-max-width:350px;
-margin:20px auto;
-}
-
-.card{
+.container{
+max-width:800px;
+margin:auto;
 background:white;
 padding:20px;
 border-radius:10px;
-box-shadow:0 2px 10px rgba(0,0,0,.15);
-max-width:600px;
-margin:auto;
-text-align:left;
+}
+
+.logo{
+text-align:center;
+margin-bottom:20px;
+}
+
+.logo img{
+max-width:280px;
+}
+
+#reader{
+width:100%;
+}
+
+.card{
+background:#f8f8f8;
+padding:15px;
+margin-top:20px;
+border-radius:10px;
+}
+
+.btn{
+display:inline-block;
+background:#0033cc;
+color:white;
+padding:12px 20px;
+text-decoration:none;
+border-radius:8px;
+margin-top:15px;
 }
 
 </style>
@@ -65,147 +62,118 @@ text-align:left;
 
 <body>
 
+<div class="container">
+
+<div class="logo">
+
 <img
-class="logo"
-src="https://i.ibb.co/W4Hm4LNy/unifin-logo-png-seeklogo.png"
->
+src="https://i.ibb.co/W4Hm4LNy/unifin-logo-png-seeklogo.png">
 
-<h1>Consulta de Activos UNIFIN</h1>
+</div>
 
-<input
-id="codigo"
-placeholder="Ejemplo 33436"
->
-
-<button onclick="consultar()">
-Buscar
-</button>
+<h2>Consulta de Activos UNIFIN</h2>
 
 <div id="reader"></div>
 
 <div id="resultado"></div>
 
+</div>
+
 <script>
 
 const API_URL =
-"https://script.google.com/macros/s/AKfycbwHgwmHqmqy1Qc_-6tAQM5VAoSyiD9YAJLwnu11hvTMNFf_YLAmtiuIyRO7ScLY42Uu/exec";
+"https://script.google.com/macros/s/AKfycbwznmQQ3syXw7-WYdofXKQEg48Y8CjcIKOr1MEU7htl2vphYhOKEDLZ2lNoe1rdlZYO/exec";
 
-async function consultar(){
+function consultarActivo(id){
 
-const codigo =
-document.getElementById("codigo")
-.value
-.trim();
-
-if(!codigo){
-
-alert("Capture un código");
-
-return;
-
-}
-
-document.getElementById("resultado").innerHTML=
-`
-<div class="card">
-Consultando...
-</div>
-`;
-
-try{
-
-const response =
-await fetch(
+fetch(
 API_URL +
 "?id=" +
-encodeURIComponent(codigo)
-);
+encodeURIComponent(id)
+)
 
-const data =
-await response.json();
+.then(response => response.json())
+
+.then(data => {
 
 if(!data.encontrado){
 
-document.getElementById("resultado").innerHTML=
-`
-<div class="card">
-<h2>No encontrado</h2>
-<p><b>Código:</b> ${codigo}</p>
-</div>
-`;
+document.getElementById(
+"resultado"
+).innerHTML =
+
+"<h3>Activo no encontrado</h3>";
 
 return;
 
 }
 
-document.getElementById("resultado").innerHTML=
-`
-<div class="card">
+document.getElementById(
+"resultado"
+).innerHTML =
 
-<h2>${data.activo}</h2>
+'<div class="card">' +
 
-<p><b>ID Activo:</b> ${data.id}</p>
+'<p><b>Cliente:</b> ' +
+data.cliente +
+'</p>' +
 
-<p><b>Cliente:</b> ${data.cliente}</p>
+'<p><b>Contrato:</b> ' +
+data.contrato +
+'</p>' +
 
-<p><b>Contrato:</b> ${data.contrato}</p>
+'<p><b>Activo:</b> ' +
+data.activo +
+'</p>' +
 
-<p><b>Estatus:</b> ${data.estatus}</p>
+'<p><b>ID:</b> ' +
+data.id +
+'</p>' +
 
-</div>
-`;
+'<p><b>Estatus:</b> ' +
+data.estatus +
+'</p>' +
 
-}
-catch(error){
+'<a class="btn" href="' +
+data.linkAuditoria +
+'" target="_blank">' +
 
-document.getElementById("resultado").innerHTML=
-`
-<div class="card">
-<h2>Error</h2>
-<p>${error}</p>
-</div>
-`;
+'Abrir Autoauditoría' +
 
-}
+'</a>' +
+
+'</div>';
+
+});
 
 }
 
 function onScanSuccess(decodedText){
 
-let valor =
-decodedText.trim();
+html5QrcodeScanner.clear();
 
-if(valor.includes("?")){
-
-const url =
-new URL(valor);
-
-if(url.searchParams.get("audit")){
-
-valor =
-url.searchParams.get("audit");
+consultarActivo(
+decodedText
+);
 
 }
 
-}
+let html5QrcodeScanner =
 
-document.getElementById("codigo").value =
-valor;
-
-consultar();
-
-}
-
-const scanner =
 new Html5QrcodeScanner(
+
 "reader",
+
 {
 fps:10,
 qrbox:250
 }
+
 );
 
-scanner.render(onScanSuccess);
+html5QrcodeScanner.render(
+onScanSuccess
+);
 
 </script>
 
